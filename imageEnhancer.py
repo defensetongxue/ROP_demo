@@ -46,7 +46,7 @@ class ClaheEnhancer:
         enhanced_image = torch.stack([red_tensor, green_tensor, image[2, :, :]])
         return enhanced_image
 if __name__=='__main__':
-    from ridge_segment import get_config
+    from config import get_config
     args=get_config()
     # Composing the enhancers
     enhance_transform = transforms.Compose([

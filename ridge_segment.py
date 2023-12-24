@@ -1,9 +1,9 @@
 import json
 import os
 import torch
-from ridge_segment import get_config
+from config import get_config
 from torchvision import transforms
-from util import get_instance,visual_mask,visual_points
+from util import get_instance,visual_mask
 import ridgeSegmentModel as models
 from PIL import Image
 import torch.nn.functional as F
@@ -20,7 +20,7 @@ with open(args.ridge_seg_cfg,'r') as f:
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
-visual_dir=os.path.join(args.result_path,'ridgeSeg')
+visual_dir=os.path.join(args.result_path,'ridgeSegmentation')
 os.makedirs(visual_dir, exist_ok=True)
 os.makedirs(visual_dir+'/0/', exist_ok=True)
 os.makedirs(visual_dir+'/1/', exist_ok=True)
@@ -30,14 +30,12 @@ model = get_instance(models, args.configs['model']['name'],args.configs['model']
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 model.load_state_dict(
-    torch.load(os.path.join(args.model_dir,'ridgeSeg',f"{args.configs['save_name']}")))
-print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+    torch.load(os.path.join(args.model_dir,'ridgeSegmentation',f"{args.configs['save_name']}")))
+print("load the checkpoint in {}".format(os.path.join(args.model_dir,'ridgeSegmentation',f"{args.configs['save_name']}")))
 model.eval()
 
 
 # Test the model and save visualizations
-with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-    split_list=json.load(f)['test']
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
@@ -53,7 +51,7 @@ val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
 with torch.no_grad():
-    for image_name in split_list:
+    for image_name in data_dict:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((800,600),resample=Image.Resampling.BILINEAR)
         mask=np.array(mask)
         mask[mask>0]=1
