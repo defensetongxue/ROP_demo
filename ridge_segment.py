@@ -38,6 +38,10 @@ model.eval()
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
+with open('./handcraft/xsj_shenzhen.json','r') as f:
+    xsj=json.load(f)
+with open('./handcraft/zy_shenzhen.json','r') as f:
+    zy=json.load(f)
 img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -81,13 +85,19 @@ with torch.no_grad():
             pred=1
         else:
             pred=0
-        if pred!=tar:
+        zy_pred = 0 if zy[image_name]['stage']==0 else 1
+        xsj_pred = 0 if xsj[image_name]['stage']==0 else 1
+        if pred!=zy_pred or pred!=xsj_pred:
             output_img=output_img.squeeze()
-            if tar==0:
-                visual_mask(data['image_path'],output_img,str(round(max_val,2)),save_path=os.path.join(visual_dir,'0',image_name))
+            text_left=[f'zy: {str(zy_pred)}',
+            f'xsj: {str(xsj_pred)}']
+            text_right=str(round(max_val,2))
+            if pred==1:
+                visual_mask(
+                    data['image_path'],output_img,text_left=text_left,text_right=text_right,save_path=os.path.join(visual_dir,'0',image_name))
             else:
-                visual_mask(data['image_path'],output_img,str(round(max_val,2)),
-                            save_path=os.path.join(visual_dir,'1',image_name))
+                visual_mask(
+                    data['image_path'],output_img,text_left=text_left,text_right=text_right,save_path=os.path.join(visual_dir,'1',image_name))
         labels.append(tar)
         predict.append(pred)
 
