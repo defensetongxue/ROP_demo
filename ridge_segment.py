@@ -50,7 +50,7 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-
+model_predit={}
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
@@ -85,6 +85,7 @@ with torch.no_grad():
             pred=1
         else:
             pred=0
+        model_predit[image_name]=pred
         zy_pred = 0 if zy[image_name]['stage']==0 else 1
         xsj_pred = 0 if xsj[image_name]['stage']==0 else 1
         if pred!=zy_pred or pred!=xsj_pred:
@@ -100,10 +101,12 @@ with torch.no_grad():
                     data['image_path'],output_img,text_left=text_left,text_right=text_right,save_path=os.path.join(visual_dir,'1',image_name))
         labels.append(tar)
         predict.append(pred)
-
+        # break
 acc = accuracy_score(labels, predict)
 auc = roc_auc_score(labels, predict)
 recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
+with open('./model_predit.json','w') as f:
+    json.dump(model_predit,f)

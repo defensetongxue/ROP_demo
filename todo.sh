@@ -1,0 +1,2 @@
+python ridge_segment.py
+shutdown
