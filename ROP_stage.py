@@ -104,34 +104,34 @@ with torch.no_grad():
             bc_pred+=1
             # visual the mismatch version
                 
-                    
+            visual=True        
             if args.visual_miss and label!=bc_pred:
                 save_path=os.path.join(visual_dir,'miss',str(label),image_name)
             elif args.visual_match and label==bc_pred:
                 save_path=os.path.join(visual_dir,'match',str(label),image_name)
             else:
-                continue # do not visual
-            
-            # Get top k firmest predictions for bc_pred class
-            top_k = min(args.k,matching_indices.shape[0])  # Assuming args.k is defined and valid
-            class_probs = probs[:, bc_pred-1]  # Extract probabilities for bc_pred class
-            top_k_values, top_k_indices = torch.topk(class_probs, k=top_k)
-            visual_point=[]
-            visual_confidence=[]
-            for val,idx in zip(top_k_values,top_k_indices):
-                x,y=data['ridge_seg']['point_list'][idx]
-                visual_point.append([int(x),int(y)])
-                visual_confidence.append(round(float(val),2))
-            visual_sentences(
-                data_dict[image_name]['image_path'],
-                points=visual_point,
-                patch_size=visual_patch_size,
-                text=f"label: {label}",
-                confidences=visual_confidence,
-                label=bc_pred,
-                save_path=save_path,
-                sample_visual=sample_visual
-                )
+                visual=False # do not visual
+            if visual:
+                # Get top k firmest predictions for bc_pred class
+                top_k = min(args.k,matching_indices.shape[0])  # Assuming args.k is defined and valid   
+                class_probs = probs[:, bc_pred-1]  # Extract probabilities for bc_pred class
+                top_k_values, top_k_indices = torch.topk(class_probs, k=top_k)
+                visual_point=[]
+                visual_confidence=[]
+                for val,idx in zip(top_k_values,top_k_indices):
+                    x,y=data['ridge_seg']['point_list'][idx]
+                    visual_point.append([int(x),int(y)])
+                    visual_confidence.append(round(float(val),2))
+                visual_sentences(
+                    data_dict[image_name]['image_path'],
+                    points=visual_point,
+                    patch_size=visual_patch_size,
+                    text=f"label: {label}",
+                    confidences=visual_confidence,
+                    label=bc_pred,
+                    save_path=save_path,
+                    sample_visual=sample_visual
+                    )
         probs_list.extend(bc_prob)
         labels_list.append(label)
         pred_list.append(bc_pred)

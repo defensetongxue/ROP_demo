@@ -67,10 +67,8 @@ with torch.no_grad():
         label=int(data['stage'])
         img=Image.open(data["image_path"]).convert("RGB")
         inputs=[]
-        if data['ridge_seg']["max_val"]<args.configs['judge_threshold']:
-            bc_prob=np.zeros((1,4),dtype=float)
-            bc_prob[0,0]=1.
-            bc_pred=0
+        if data['ridge_seg']["max_val"]<args.configs['judge_threshold'] or data_dict[image_name]['stage']==0:
+            continue
         else:
             sample_visual=[]
             for (x,y),val in zip(data['ridge_seg']['point_list'],data['ridge_seg']["value_list"]):
@@ -100,40 +98,40 @@ with torch.no_grad():
             bc_prob[-1]=1-torch.sum(bc_prob[:-1])
             bc_prob=bc_prob.unsqueeze(0).numpy()
             bc_prob = np.insert(bc_prob, 0, 0, axis=1)
-            
-            bc_pred+=1
+        
             # visual the mismatch version
-                
-                    
+            visual=True        
             if args.visual_miss and label!=bc_pred:
                 save_path=os.path.join(visual_dir,'miss',str(label),image_name)
             elif args.visual_match and label==bc_pred:
                 save_path=os.path.join(visual_dir,'match',str(label),image_name)
             else:
-                continue # do not visual
+                visual=False # do not visual    
+            if visual:
             
-            # Get top k firmest predictions for bc_pred class
-            top_k = min(args.k,matching_indices.shape[0])  # Assuming args.k is defined and valid
-            class_probs = probs[:, bc_pred-1]  # Extract probabilities for bc_pred class
-            top_k_values, top_k_indices = torch.topk(class_probs, k=top_k)
-            visual_point=[]
-            visual_confidence=[]
-            for val,idx in zip(top_k_values,top_k_indices):
-                x,y=data['ridge_seg']['point_list'][idx]
-                visual_point.append([int(x),int(y)])
-                visual_confidence.append(round(float(val),2))
-            visual_sentences(
-                data_dict[image_name]['image_path'],
-                points=visual_point,
-                patch_size=visual_patch_size,
-                text=f"label: {label}",
-                confidences=visual_confidence,
-                label=bc_pred,
-                save_path=save_path,
-                sample_visual=sample_visual
-                )
+                # Get top k firmest predictions for bc_pred class
+                top_k = min(args.k,matching_indices.shape[0])  # Assuming args.k is defined and valid
+                class_probs = probs[:, bc_pred-1]  # Extract probabilities for bc_pred class
+                top_k_values, top_k_indices = torch.topk(class_probs, k=top_k)
+                visual_point=[]
+                
+                visual_confidence=[]
+                for val,idx in zip(top_k_values,top_k_indices):
+                    x,y=data['ridge_seg']['point_list'][idx]
+                    visual_point.append([int(x),int(y)])
+                    visual_confidence.append(round(float(val),2))
+                visual_sentences(
+                    data_dict[image_name]['image_path'],
+                    points=visual_point,
+                    patch_size=visual_patch_size,
+                    text=f"label: {label}",
+                    confidences=visual_confidence,
+                    label=bc_pred+1,
+                    save_path=save_path,
+                    sample_visual=sample_visual
+                    )
         probs_list.extend(bc_prob)
-        labels_list.append(label)
+        labels_list.append(label-1)
         pred_list.append(bc_pred)
         model_prediction[image_name]=bc_pred
 probs_list=np.vstack(probs_list)
@@ -154,12 +152,7 @@ for i in range(num_classes):
     predicted_class = pred_labels == i
     recall_per_class[i] = recall_score(true_class, predicted_class)
 
-# Calculate recall for positive classes (classes > 0)
-true_positive = labels_list > 0
-predicted_positive = pred_labels > 0
-recall_positive = recall_score(true_positive, predicted_positive)
 
 # Print recall for each class and positive recall
 for i, recall in enumerate(recall_per_class):
     print(f"Recall for class {i}: {recall:.4f}")
-print(f"Recall for positive classes: {recall_positive:.4f}")

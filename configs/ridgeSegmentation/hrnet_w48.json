@@ -1,6 +1,7 @@
 {
     "num_works": 15,
     "save_name":"hrnet_large.pth",
+    "ridge_Seg_number":5,
     "model": {
         "loss_func": "BCELoss",
         "loss_weight":2.0,
