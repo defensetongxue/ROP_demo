@@ -11,6 +11,8 @@ from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
 import numpy as np
 # Parse arguments
 import time
+torch.manual_seed(0)
+np.random.seed(0)
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 args = get_config()
