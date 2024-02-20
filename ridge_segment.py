@@ -11,7 +11,6 @@ import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
 import numpy as np
 # Parse arguments
-import time
 torch.manual_seed(0)
 np.random.seed(0)
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
@@ -51,7 +50,6 @@ img_transforms=transforms.Compose([
             transforms.Normalize(
                 mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
                 )])
-begin=time.time()
 predict=[]
 labels=[]
 
@@ -74,9 +72,9 @@ with torch.no_grad():
         
         output_img=torch.sigmoid(output_img)
         output_img=F.interpolate(output_img,(1200,1600), mode='nearest')
+        output_img=output_img*mask
         max_val=float(torch.max(output_img))
         val_list.append(max_val)
-        output_img=output_img*mask
         
         if data['stage']>0:
             tar=1
@@ -101,7 +99,7 @@ with torch.no_grad():
                     text_left=f"label:  {int(tar)}",
                     save_path=save_path)
         if pred==1:
-            maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.configs['ridge_Seg_number'],r=60,threshold=0.3)
+            maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.configs['ridge_seg_number'],r=60,threshold=0.3)
             value_list=[]
             point_list=[]
             for value in maxval:
@@ -116,7 +114,7 @@ with torch.no_grad():
                 "orignal_weight":1600,
                 "orignal_height":1200,
                 'max_val':max_val,
-                "sample_number":args.configs['ridge_Seg_number'],
+                "sample_number":args.configs['ridge_seg_number'],
                 "sample_interval":60
             }
         else:
@@ -133,6 +131,6 @@ print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
 
-# with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
-with open('test.json','w') as f:
+with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
+# with open('test.json','w') as f:
     json.dump(data_dict,f)

@@ -15,7 +15,7 @@ os.makedirs("experiments",exist_ok=True)
 torch.manual_seed(0)
 np.random.seed(0)
 args = get_config()
-with open(args.ridge_seg_cfg,'r') as f:
+with open(args.stage_cfg,'r') as f:
     args.configs=json.load(f)
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
@@ -27,7 +27,7 @@ os.system(f'rm -rf {visual_dir}/*')
 for i in ['match','miss']:
     os.makedirs(os.path.join(visual_dir,i),exist_ok=True)
     for j in ['0','1','2','3']:
-        os.makedirs(os.pat.join(visual_dir,i,j),exist_ok=True)
+        os.makedirs(os.path.join(visual_dir,i,j),exist_ok=True)
         
         
 
