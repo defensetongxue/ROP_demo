@@ -2,3 +2,4 @@ experiments
 check
 __pycache__
 *.pth
+*.out

@@ -52,7 +52,7 @@ img_transforms=transforms.Compose([
                 )])
 predict=[]
 labels=[]
-
+model_predit={}
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
@@ -86,44 +86,22 @@ with torch.no_grad():
             pred=1
         else:
             pred=0
-        visual=True
-        if args.visual_miss and tar!=pred:
-            save_path=os.path.join(visual_dir,'miss',str(tar),image_name)
-        elif args.visual_match and tar==pred:
-            save_path=os.path.join(visual_dir,'match',str(tar),image_name)
-        else:
-            visual=False # do not visual
-        if visual:
-            visual_mask(data['image_path'],
-                    output_img,
-                    text_left=f"label:  {int(tar)}",
-                    save_path=save_path)
-        if pred==1:
-            maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.configs['ridge_seg_number'],r=60,threshold=0.3)
-            value_list=[]
-            point_list=[]
-            for value in maxval:
-                value=round(float(value),2)
-                value_list.append(value)
-            for y,x in pred_point:
-                point_list.append([int(x),int(y)])
-            data_dict[image_name]['ridge_seg']={
-                # "ridge_seg_path":ridge_seg_path,
-                "value_list":value_list,
-                "point_list":point_list,
-                "orignal_weight":1600,
-                "orignal_height":1200,
-                'max_val':max_val,
-                "sample_number":args.configs['ridge_seg_number'],
-                "sample_interval":60
-            }
-        else:
-            data_dict[image_name]['ridge_seg']={
-                'max_val':max_val
-            }
+        zy_pred = 0 if zy[image_name]['stage']==0 else 1
+        xsj_pred = 0 if xsj[image_name]['stage']==0 else 1
+        if pred!=zy_pred or pred!=xsj_pred:
+            output_img=output_img.squeeze()
+            text_left=[f'zy: {str(zy_pred)}',
+            f'xsj: {str(xsj_pred)}']
+            text_right=str(round(max_val,2))
+            if pred==1:
+                visual_mask(
+                    data['image_path'],output_img,text_left=text_left,text_right=text_right,save_path=os.path.join(visual_dir,'0',image_name))
+            else:
+                visual_mask(
+                    data['image_path'],output_img,text_left=text_left,text_right=text_right,save_path=os.path.join(visual_dir,'1',image_name))
         labels.append(tar)
         predict.append(pred)
-
+        # break
 acc = accuracy_score(labels, predict)
 auc = roc_auc_score(labels, predict)
 recall=recall_score(labels,predict)
