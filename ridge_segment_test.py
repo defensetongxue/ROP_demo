@@ -4,7 +4,7 @@ import torch
 from config import get_config
 from torchvision import transforms
 from util.tools import get_instance
-from util.ridge_segment import k_max_values_and_indices
+from util.ridge_segment import visual_mask
 import ridgeSegmentModel as models
 from PIL import Image
 import torch.nn.functional as F
@@ -18,15 +18,21 @@ IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 args = get_config()
 with open(args.ridge_seg_cfg,'r') as f:
     args.configs=json.load(f)
-    
-
-# Test the model and save visualizations
-with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
-    data_dict=json.load(f)
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
+visual_error=False
+if visual_error:
+    visual_dir=os.path.join(args.result_path,'ridgeSegmentation')
+    os.makedirs(visual_dir, exist_ok=True)
+    os.makedirs(visual_dir, exist_ok=True)
+    os.system(f'rm -rf {visual_dir}/*')
+    for i in ['match','miss']:
+        os.makedirs(os.path.join(visual_dir,i),exist_ok=True)
+        for j in ['0','1']:
+            os.makedirs(os.path.join(visual_dir,i,j),exist_ok=True)
+        
 
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
@@ -38,6 +44,9 @@ print("load the checkpoint in {}".format(os.path.join(args.model_dir,'ridgeSegme
 model.eval()
 
 
+# Test the model and save visualizations
+with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
+    data_dict=json.load(f)
 img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -45,9 +54,6 @@ img_transforms=transforms.Compose([
                 )])
 predict=[]
 labels=[]
-model_predit={}
-save_all_visual=True
-save_all_dir=os.path.join(args.data_path,'ridge_seg')
 with torch.no_grad():
     for image_name in data_dict:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
@@ -75,45 +81,16 @@ with torch.no_grad():
             pred=1
         else:
             pred=0
-        
-        if max_val>=0.5:
-            # Construct the file path for saving the image
-            ridge_seg_path = os.path.join(save_all_dir,image_name)
             
-            # Squeeze the tensor to remove any extra dimensions
-            output_img = output_img.squeeze()
-            
-            # Convert the tensor to a PIL image
-            # Assuming the tensor is in the range [0, 1)
-            output_img_pil = Image.fromarray((output_img.numpy() *255).astype('uint8'))
-            
-            # Save the image
-            output_img_pil.save(ridge_seg_path)
-                
-            # save the ridge seg for visual and sample for stage
-            maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.ridge_seg_number,r=60,threshold=0.3)
-            value_list=[]
-            point_list=[]
-            for value in maxval:
-                value=round(float(value),2)
-                value_list.append(value)
-            for y,x in pred_point:
-                point_list.append([int(x),int(y)])
-            data_dict[image_name]['ridge_seg']={
-                "ridge_seg_path":ridge_seg_path,
-                "value_list":value_list,
-                "point_list":point_list,
-                "orignal_weight":1600,
-                "orignal_height":1200,
-                'max_val':max_val,
-                "sample_number":args.ridge_seg_number,
-                "sample_interval":60
-                
-            }
-        else:
-            data_dict[image_name]['ridge_seg']={
-                'max_val':max_val
-            }
+        if pred!=tar:
+            output_img=output_img.squeeze()
+            text=f"Stage:{data['stage']}"
+            if pred==1:
+                visual_mask(
+                    data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'0',image_name))
+            else:
+                visual_mask(
+                    data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'1',image_name))
         labels.append(tar)
         predict.append(pred)
         # break
@@ -123,6 +100,3 @@ recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
-
-with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
-    json.dump(data_dict,f)
