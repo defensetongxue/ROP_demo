@@ -1,2 +1,2 @@
-python ridge_segment.py
-shutdown
+python generate_mask.py
+python imageEnhancer.py 

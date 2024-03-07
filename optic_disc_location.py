@@ -22,18 +22,18 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model_v  = get_instance(models, args.configs['model']['name'],args.configs['model'],split='test')
 model_v=model_v.to(device)
 model_v.load_state_dict(
-    torch.load(os.path.join(args.model_dir,"optic_disc",f'v_{args.save_name}')))
+    torch.load(os.path.join(args.model_dir,"optic_disc",'v_optic_disc.pth')))
 model_v.eval()
 
-model_u, _ = get_instance(models, args.configs['model']['name'],args.configs['model'],split='test')
+model_u = get_instance(models, args.configs['model']['name'],args.configs['model'],split='test')
 model_u=model_u.to(device)
 model_u.load_state_dict(
-    torch.load(os.path.join(args.model_dir,"optic_disc",f'u_{args.save_name}')))
+    torch.load(os.path.join(args.model_dir,"optic_disc",'u_optic_disc.pth')))
 model_u.eval()
 
-model_cls, _  = cls_models(args.configs['cls_model']['name'],args.configs['cls_model'])
+model_cls = cls_models(args.configs['cls_model']['name'],args.configs['cls_model'])
 model_cls=model_cls.to(device)
-model_cls.load_state_dict(torch.load(os.path.join(args.model_dir,"optic_disc",f'optic_disc_cls.pth')))
+model_cls.load_state_dict(torch.load(os.path.join(args.model_dir,"optic_disc",'optic_disc_cls.pth')))
 model_cls.eval()
 # Create the dataset and data loader
 

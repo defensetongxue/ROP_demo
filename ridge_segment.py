@@ -48,6 +48,7 @@ labels=[]
 model_predit={}
 save_all_visual=True
 save_all_dir=os.path.join(args.data_path,'ridge_seg')
+os.makedirs(save_all_dir,exist_ok=True)
 with torch.no_grad():
     for image_name in data_dict:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
@@ -90,24 +91,12 @@ with torch.no_grad():
             # Save the image
             output_img_pil.save(ridge_seg_path)
                 
-            # save the ridge seg for visual and sample for stage
-            maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.ridge_seg_number,r=60,threshold=0.3)
-            value_list=[]
-            point_list=[]
-            for value in maxval:
-                value=round(float(value),2)
-                value_list.append(value)
-            for y,x in pred_point:
-                point_list.append([int(x),int(y)])
+            
             data_dict[image_name]['ridge_seg']={
                 "ridge_seg_path":ridge_seg_path,
-                "value_list":value_list,
-                "point_list":point_list,
                 "orignal_weight":1600,
                 "orignal_height":1200,
-                'max_val':max_val,
-                "sample_number":args.ridge_seg_number,
-                "sample_interval":60
+                'max_val':max_val
                 
             }
         else:

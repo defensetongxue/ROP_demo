@@ -21,6 +21,8 @@ def get_config():
                         default="./configs/ridgeSegmentation/hrnet_w48.json", type=str)
     parser.add_argument('--stage_cfg', help='experiment configuration filename',
                         default="./configs/ROPStage/efficientnet_b7.json", type=str)
+    parser.add_argument('--optic_disc_cfg', help='experiment configuration filename',
+                        default="./configs/optic_disc/defalut.json", type=str)
     args = parser.parse_args()
     # Merge args and config file 
     return args
