@@ -54,8 +54,11 @@ img_transforms=transforms.Compose([
                 )])
 predict=[]
 labels=[]
+with open(os.path.join(args.data_path,'split','clr.json')) as f:
+    split_list=json.load(f)['test']
+    
 with torch.no_grad():
-    for image_name in data_dict:
+    for image_name in split_list:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
         mask=np.array(mask)
         mask[mask>0]=1
@@ -82,15 +85,15 @@ with torch.no_grad():
         else:
             pred=0
             
-        if pred!=tar:
-            output_img=output_img.squeeze()
-            text=f"Stage:{data['stage']}"
-            if pred==1:
-                visual_mask(
-                    data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'0',image_name))
-            else:
-                visual_mask(
-                    data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'1',image_name))
+        # if pred!=tar:
+        #     output_img=output_img.squeeze()
+        #     text=f"Stage:{data['stage']}"
+        #     if pred==1:
+        #         visual_mask(
+        #             data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'0',image_name))
+        #     else:
+        #         visual_mask(
+        #             data['image_path'],output_img,text_left=text,save_path=os.path.join(visual_dir,'1',image_name))
         labels.append(tar)
         predict.append(pred)
         # break

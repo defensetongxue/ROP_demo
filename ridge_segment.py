@@ -49,8 +49,11 @@ model_predit={}
 save_all_visual=True
 save_all_dir=os.path.join(args.data_path,'ridge_seg')
 os.makedirs(save_all_dir,exist_ok=True)
+with open(os.path.join(args.data_path,'split','clr.json')) as f:
+    split_list=json.load(f)['test']
+    
 with torch.no_grad():
-    for image_name in data_dict:
+    for image_name in split_list:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
         mask=np.array(mask)
         mask[mask>0]=1
@@ -72,12 +75,12 @@ with torch.no_grad():
             tar=1
         else:
             tar=0
-        if (max_val>=0.5):
+        if (max_val>0.5):
             pred=1
         else:
             pred=0
         
-        if max_val>=0.5:
+        if max_val>0.5:
             # Construct the file path for saving the image
             ridge_seg_path = os.path.join(save_all_dir,image_name)
             

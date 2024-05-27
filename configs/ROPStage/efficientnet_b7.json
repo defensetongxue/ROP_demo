@@ -5,6 +5,9 @@
     "save_name":"efficientnet_b7.pth",
     "judge_threshold":0.5,
     "sample_low_threshold":0.42,
+    "resize":224,
+    "ridge_seg_number":5,
+    "patch_size":380,
     "pretrained_path":"../ROP_diagnoise/pretrained/RETFound_cfp_weights.pth",
     "model":{
         "name":"efficientnet_b7",

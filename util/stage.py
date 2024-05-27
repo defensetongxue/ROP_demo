@@ -48,7 +48,6 @@ def visual_sentences(image_path, points, patch_size, label=None, confidences=Non
         img.save(save_path)
     else:
         img.show()
-
 def crop_patches(img,patch_size,x,y, max_weight=1599,max_height=1199):
     '''
     keep the size as conv ridge segmentation model
