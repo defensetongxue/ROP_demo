@@ -26,7 +26,7 @@ def k_max_values_and_indices(scores, k,r=100,threshold=0.0):
 
 def visual_mask(image_path, mask, text_left=None, text_right=None, save_path='./tmp.jpg'):
     # Open the image file.
-    image = Image.open(image_path).convert("RGBA").resize((800,600),resample=Image.Resampling.BILINEAR)
+    image = Image.open(image_path).convert("RGBA").resize((1600,1200),resample=Image.Resampling.BILINEAR)
 
     # Create a blue mask.
     mask_np = np.array(mask)
